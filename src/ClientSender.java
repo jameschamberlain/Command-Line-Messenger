@@ -11,49 +11,80 @@ import java.io.PrintStream;
 
 public class ClientSender extends Thread {
 
-  private String nickname;
-  private PrintStream server;
+    private String nickname;
+    private PrintStream server;
+    private boolean shouldBreak = false;
 
-  ClientSender(String nickname, PrintStream server) {
-    this.nickname = nickname;
-    this.server = server;
-  }
-
-  /**
-   * Start ClientSender thread.
-   */
-  public void run() {
-    // So that we can use the method readLine:
-    BufferedReader user = new BufferedReader(new InputStreamReader(System.in));
-
-    try {
-      // Then loop forever sending messages to recipients via the server:
-      while (true) {
-        String userInput = user.readLine();
-
-        if (userInput.equals("quit")) {
-          server.println(userInput);
-          break;
-        }
-
-        String text = user.readLine();
-        server.println(userInput); // Matches CCCCC in ServerReceiver
-        server.println(text);      // Matches DDDDD in ServerReceiver
-      }
-    } catch (IOException e) {
-      Report.errorAndGiveUp("Communication broke in ClientSender"
-                        + e.getMessage());
+    ClientSender(String nickname, PrintStream server) {
+        this.nickname = nickname;
+        this.server = server;
     }
 
-    Report.behaviour("Client sender thread ending"); // Matches GGGGG in Client.java
-  }
+    /**
+     * Start ClientSender thread.
+     */
+    public void run() {
+        // So that we can use the method readLine:
+        BufferedReader user = new BufferedReader(new InputStreamReader(System.in));
+
+        try {
+            // Then loop forever sending messages to recipients via the server:
+            while (!shouldBreak) {
+                String command = user.readLine();
+
+                switch (command) {
+                    case "logout":
+                        server.println(command);
+                        shouldBreak = true;
+                        break;
+                    case "send":
+                        System.out.print("recipient: ");
+                        String recipient = user.readLine();
+                        System.out.print("message: ");
+                        String message = user.readLine();
+                        server.println(command);      // Matches YYYYY in ClientSender.java
+                        server.println(recipient);    // Matches CCCCC in ServerReceiver
+                        server.println(message);      // Matches DDDDD in ServerReceiver
+                        System.out.println("Message sent");
+                        break;
+                    case "previous":
+                        server.println(command);      // Matches YYYYY in ClientSender.java
+                        break;
+                    case "next":
+                        server.println(command);      // Matches YYYYY in ClientSender.java
+                        break;
+                    case "delete":
+                        server.println(command);      // Matches YYYYY in ClientSender.java
+                        break;
+                    case "current":
+                        server.println(command);      // Matches YYYYY in ClientSender.java
+                        break;
+                    case "help":
+                        System.out.println("Possible commands: [send, previous, next, delete, current, help]");
+                        break;
+                    default:
+                        System.out.println("Command not recognised. For a list of available commands type \'help\'");
+                        break;
+                }
+
+
+
+
+            }
+        }
+        catch (IOException e) {
+            Report.errorAndGiveUp("Communication broke in ClientSender" + e.getMessage());
+        }
+
+        Report.behaviour("Client sender thread ending"); // Matches GGGGG in Client.java
+    }
 }
 
 /*
 
 What happens if recipient is null? Then, according to the Java
 documentation, println will send the string "null" (not the same as
-null!). So maye we should check for that case! Paticularly in
+null!). So maybe we should check for that case! Particularly in
 extensions of this system.
 
  */

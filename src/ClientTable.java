@@ -6,24 +6,40 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ClientTable {
 
+    /**
+     * Stores the messages of every user
+     */
     private ConcurrentMap<String, CopyOnWriteArrayList<Message>> allUsersMessages = new ConcurrentHashMap<>();
 
-    // The following overrides any previously existing nickname, and
-    // hence the last client to use this nickname will get the messages
-    // for that nickname, and the previously existing clients with that
-    // nickname won't be able to get messages. Obviously, this is not a
-    // good design of a messaging system. So I don't get full marks:
-
-    public void add(String nickname) {
-        allUsersMessages.put(nickname, new CopyOnWriteArrayList<>());
+    /**
+     *
+     * Adds the client and their messages to the global map for users
+     *
+     * @param nickname The nickname of the client
+     * @param list The list of messages for the client
+     */
+    public void add(String nickname, CopyOnWriteArrayList list) {
+        allUsersMessages.put(nickname, list);
     }
 
-    // Returns null if the nickname is not in the table:
+    /**
+     *
+     * Gets the messages for the selected user
+     * Returns null if the nickname is not in the table
+     *
+     * @param nickname
+     * @return
+     */
     public CopyOnWriteArrayList<Message> getMessages(String nickname) {
         return allUsersMessages.get(nickname);
     }
 
-    // Removes from table:
+    /**
+     *
+     * Removes the user and their messages from the global map for users
+     *
+     * @param nickname The nickname for the client
+     */
     public void remove(String nickname) {
         allUsersMessages.remove(nickname);
     }

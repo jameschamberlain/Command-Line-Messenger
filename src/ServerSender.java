@@ -1,20 +1,39 @@
-
 import java.io.PrintStream;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-// Continuously reads from message queue for a particular client,
-// forwarding to the client.
+// Continuously reads from message list for a particular client,
+// forwarding to the client. Also performs commands from the user
 
 public class ServerSender extends Thread {
-    private CopyOnWriteArrayList<Message> clientMessages;
-    private PrintStream client;
-    private int oldSize = 0;
-    private int currentMessage;
-    private Message oldMessage;
-    private boolean hasDeletedMessage = false;
 
     /**
-     * Constructs a new server sender.
+     * Stores the global client table
+     */
+    private CopyOnWriteArrayList<Message> clientMessages;
+    /**
+     * Stores the communication stream to the client
+     */
+    private PrintStream client;
+    /**
+     * Stores the size of the client messages list before operations occur
+     */
+    private int oldSize = 0;
+    /**
+     * Stores the pointer for the current message
+     */
+    private int currentMessage;
+    /**
+     * Stores the message before operations occur
+     */
+    private Message oldMessage;
+    /**
+     * Stores whether the last command a client performed was 'delete'
+     */
+    private boolean hasDeletedMessage = false;
+
+
+    /**
+     * Constructs a new server sender
      *
      * @param l messages from this queue will be sent to the client
      * @param c the stream used to send data to the client
@@ -29,6 +48,7 @@ public class ServerSender extends Thread {
      */
     public void run() {
 
+        // Set the current message to the newest message
         if (clientMessages.size() > 1) {
             currentMessage = (clientMessages.size() - 1);
         }
@@ -36,7 +56,7 @@ public class ServerSender extends Thread {
             currentMessage = 0;
         }
 
-
+        // When the client has a new message print it
         while (true) {
             if (clientMessages.size() > 0 && oldSize < clientMessages.size()) {
                 Message msg = clientMessages.get(clientMessages.size() - 1); // Matches EEEEE in ServerReceiver
@@ -47,15 +67,12 @@ public class ServerSender extends Thread {
         }
 
     }
-    /*
+    // Throws InterruptedException if interrupted while waiting
 
-     * Throws InterruptedException if interrupted while waiting
 
-     * See https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/BlockingQueue.html#take--
-
+    /**
+     * Prints the previous message
      */
-
-
     public void previous() {
         if (currentMessage > 0) {
             Message msg = clientMessages.get(currentMessage - 1);
@@ -68,6 +85,9 @@ public class ServerSender extends Thread {
         }
     }
 
+    /**
+     * Prints the next message
+     */
     public void next() {
         if (currentMessage < (clientMessages.size() - 1)) {
             Message msg = clientMessages.get(currentMessage + 1);
@@ -80,7 +100,9 @@ public class ServerSender extends Thread {
         }
     }
 
-
+    /**
+     * Deletes the current message
+     */
     public void deleteMessage() {
         if (clientMessages.size() > 0) {
             clientMessages.remove(currentMessage);
@@ -96,7 +118,9 @@ public class ServerSender extends Thread {
         }
     }
 
-
+    /**
+     * Prints the current message
+     */
     public void currentMessage() {
         if (clientMessages.size() > 0) {
             if (currentMessage >= clientMessages.size()) {
@@ -113,6 +137,5 @@ public class ServerSender extends Thread {
             client.println("No current message"); // Matches FFFFF in ClientReceiver
         }
     }
-
 
 }

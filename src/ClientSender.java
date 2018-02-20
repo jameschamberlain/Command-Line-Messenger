@@ -1,20 +1,36 @@
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 
-// Repeatedly reads recipient's nickname and text from the user in two
+// Repeatedly reads recipient's command and any extra text from the user in
 // separate lines, sending them to the server (read by ServerReceiver
 // thread).
 
 public class ClientSender extends Thread {
 
+    /**
+     * Stores the nickname of the client
+     */
     private String nickname;
+    /**
+     * Stores the communication stream to the server
+     */
     private PrintStream server;
+    /**
+     * Stores whether the thread should stop running or not
+     */
     private boolean shouldBreak = false;
 
+
+    /**
+     *
+     * Constructs a new client sender
+     *
+     * @param nickname The nickname of the client
+     * @param server The communication stream to the server (ServerSender)
+     */
     ClientSender(String nickname, PrintStream server) {
         this.nickname = nickname;
         this.server = server;
@@ -28,7 +44,9 @@ public class ClientSender extends Thread {
         BufferedReader user = new BufferedReader(new InputStreamReader(System.in));
 
         try {
-            // Then loop forever sending messages to recipients via the server:
+            // Loop until the client logs out,
+            // sending messages to recipients
+            // and commands to the server via the server:
             while (!shouldBreak) {
                 String command = user.readLine();
 
@@ -77,14 +95,6 @@ public class ClientSender extends Thread {
         }
 
         Report.behaviour("Client sender thread ending"); // Matches GGGGG in Client.java
+
     }
 }
-
-/*
-
-What happens if recipient is null? Then, according to the Java
-documentation, println will send the string "null" (not the same as
-null!). So maybe we should check for that case! Particularly in
-extensions of this system.
-
- */

@@ -7,41 +7,72 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Server {
 
-
+    /**
+     * Stores the list of users
+     */
     private static ArrayList<String> users = new ArrayList<>();
+    /**
+     * Stores the list of users who are currently online
+     */
     static ArrayList<String> usersOnline = new ArrayList<>();
-    private static File usersFile = new File("src/users/users.txt");
+    /**
+     * Stores the path to the file containing the list of users
+     */
+    private static File usersFile = new File("src/resources/users.txt");
+    /**
+     * Stores the file path as a string
+     */
     private static String usersPath = usersFile.getAbsolutePath();
+    /**
+     * Stores the path to the folder containing the users' messages
+     */
+    private static File userMessagesFile;
+    /**
+     * Stores the file path as a string
+     */
+    private static String userMessagesPath;
+    /**
+     * Stores whether the user is logged in or not
+     */
     private static boolean isLoggedIn = false;
+    /**
+     * Stores the messages of the recipient
+     */
+    private static CopyOnWriteArrayList<Message> userMessages;
+    /**
+     * Temporarily stores the messages of the recipient
+     */
+    private static ArrayList<String> userMessagesTemp;
+
 
     /**
      * Start the server listening for connections.
      */
     public static void main(String[] args) {
 
-        readUsernamesFile();
+        readFile(usersFile, usersPath, users);
 
         print("Users registered", users);
 
         // This table will be shared by the server threads:
         ClientTable clientTable = new ClientTable();
 
-        /**
-         * Add previously registered users to the ClientTable so messages can be stored
-         */
+        // Add previously registered users, and their messages, to the client table
         for (String user : users) {
-            clientTable.add(user);
+            userMessagesFile = new File("src/resources/user_messages/" + user + ".txt");
+            userMessagesPath = userMessagesFile.getAbsolutePath();
+            userMessagesTemp = new ArrayList<>();
+            readFile(userMessagesFile, userMessagesPath, userMessagesTemp);
+            userMessages = new CopyOnWriteArrayList<>();
+            for (String s : userMessagesTemp) {
+                userMessages.add(Message.toMessage(s));
+            }
+            clientTable.add(user, userMessages);
         }
 
         ServerSocket serverSocket = null;
@@ -70,6 +101,7 @@ public class Server {
                     String clientName = fromClient.readLine(); // Matches BBBBB in Client
                     String newUser = fromClient.readLine(); // Matches ZZZZZ in Client
 
+                    // Steps through the register/login process with the client
                     if (newUser.equals("true")) {
                         if (users.contains(clientName)) {
                             toClient.println("Username already taken, please select another or login as that user");
@@ -79,11 +111,12 @@ public class Server {
                             toClient.println("Register and login successful");
                             Report.behaviour("New user: " + clientName + " connected");
                             // We add the new client to the table:
-                            clientTable.add(clientName);
+                            userMessages = new CopyOnWriteArrayList<>();
+                            clientTable.add(clientName, userMessages);
                             // We add the new client to the list of users and online users
                             users.add(clientName);
                             usersOnline.add(clientName);
-                            writeUsernamesFile();
+                            writeFile(usersPath, users);
                             print("Current users online", usersOnline);
 
                             // We create and start a new thread to write to the client:
@@ -120,6 +153,7 @@ public class Server {
 
                     }
                 }
+                // If the login/register process is not complete keep the while loop going
                 isLoggedIn = false;
             }
         }
@@ -133,31 +167,43 @@ public class Server {
 
 
     /**
-     * Takes the users file and stores the usernames
+     *
+     * Takes a file and stores its contents in a list
+     *
+     * @param file The file to be read
+     * @param path The path to the specified file
+     * @param list The list that the file contents should be stored in
      */
-    private static void readUsernamesFile() {
+    private static void readFile(File file, String path, ArrayList<String> list) {
+        // Create a new BufferedReader that will go onto read the file's contents
         BufferedReader reader = null;
         try {
-            reader = new BufferedReader(new FileReader(usersPath));
+            reader = new BufferedReader(new FileReader(path));
         }
         catch (FileNotFoundException e) {
-            Report.error("Couldn't find \"users.txt\" file");
-            Report.behaviour("    Creating the \"users.txt\" file...");
+            Report.error("Couldn't find file");
+            Report.behaviour("    Creating the file...");
             try {
-                usersFile.createNewFile();
-                readUsernamesFile();
+                // If the file does not exist, try and create the file
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+                readFile(file, path, list);
             }
             catch (IOException e2) {
-                Report.error("Couldn't create \"users.txt\" file");
+                Report.error("Couldn't create file");
             }
             Report.behaviour("    Created \"users.txt\" file");
         }
+
+        // Stores the current line in the file
         String line;
+
         try {
+            // While the current line is not empty, read it and store it in the list
             while ((line = reader.readLine()) != null) {
-                String user = line;
-                users.add(user);
+                list.add(line);
             }
+            reader.close();
         }
         catch (NullPointerException | IOException e) {
             Report.error("Couldn't read \"users.txt\" file\n    The file may be empty");
@@ -166,21 +212,22 @@ public class Server {
 
 
     /**
-     * Writes the usernames to a file
+     *
+     * Write a list to a file
+     *
+     * @param path The path for the new file
+     * @param list The list which holds the content
      */
-    private static void writeUsernamesFile() {
-        //String userNames = "";
+    static void writeFile(String path, ArrayList<String> list) {
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(new File(usersPath), false));
-            for (String user : users) {
-                //userNames += user + "\n";
-                writer.write(user);
+            // Create a new BufferedWrite to write to the file
+            BufferedWriter writer = new BufferedWriter(new FileWriter(new File(path), false));
+            // For every item in the list, write it to the file and then add a line break
+            for (String item : list) {
+                writer.write(item);
                 writer.newLine();
             }
             writer.close();
-            //List<String> lines = Arrays.asList(userNames);
-            //Path file = Paths.get(usersPath);
-            //Files.write(file, lines, Charset.forName("UTF-8"));
         }
         catch (IOException e) {
             Report.error(e.getMessage());
@@ -190,16 +237,16 @@ public class Server {
 
     /**
      *
-     * @param newArrayList ArrayList to be printed to the screen
+     * Prints a list along with a description
+     * in a nice format:
+     * Description: [1, 2, 3]
+     *
+     * @param description The accompanying description
+     * @param newArrayList List to be printed to the screen
      */
     public static void print(String description, ArrayList newArrayList) {
         String arrayText = description + ": [";
-        if (newArrayList.size() == 0) {
-            for (Object i : newArrayList) {
-                arrayText += i;
-            }
-        }
-        else {
+        if (newArrayList.size() > 0) {
             arrayText += newArrayList.get(0);
             for (int i = 1; i < newArrayList.size(); i++) {
                 arrayText += ", " + newArrayList.get(i);

@@ -1,20 +1,11 @@
 // Usage:
-//        java Client user-nickname server-hostname
+//        java Client server-hostname
 //
 // After initializing and opening appropriate sockets, we start two
 // client threads, one to send messages, and another one to get
 // messages.
-//
-// A limitation of our implementation is that there is no provision
-// for a client to end after we start it. However, we implemented
-// things so that pressing ctrl-c will cause the client to end
-// gracefully without causing the server to fail.
-//
-// Another limitation is that there is no provision to terminate when
-// the server dies.
 
 import java.io.BufferedReader;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
@@ -24,11 +15,29 @@ import java.util.Scanner;
 
 class Client {
 
+
+    /**
+     * Stores the command entered by the user
+     */
     private static String command;
+    /**
+     * Stores the nickname entered by the user
+     */
     private static String nickname;
+    /**
+     * Stores whether the user is a new user or not
+     */
     private static boolean isNewUser;
+    /**
+     * Stores whether the user has logged in or not
+     */
     private static boolean isLoggedIn = false;
+    /**
+     * Stores the initial input from the user
+     */
     private static Scanner userInput;
+
+
 
     public static void main(String[] args) {
 
@@ -40,8 +49,10 @@ class Client {
         // Initialize information:
         String hostname = args[0];
 
+        // Take input from user:
         userInput = new Scanner(System.in);
 
+        // Attempt to sign in:
         signInProcess();
 
 
@@ -62,6 +73,10 @@ class Client {
             Report.errorAndGiveUp("The server doesn't seem to be running " + e.getMessage());
         }
 
+        /*
+         While the user has not logged in, create a
+         back and forth between the client and the server
+          */
         while (!isLoggedIn) {
             // Tell the server what my nickname is:
             toServer.println(nickname + "\n" + isNewUser); // Matches BBBBB and ZZZZZ in Server.java
@@ -93,7 +108,7 @@ class Client {
                 }
 
             }
-            catch (IOException e) {
+            catch (IOException | NullPointerException e) {
                 Report.error("IO error " + e.getMessage());
             }
         }
@@ -127,8 +142,9 @@ class Client {
         System.out.println("Logged out");
     }
 
+
     /**
-     * Facilitates the initial command interface to register or login
+     * Facilitates the initial command interface to register or login the user
      */
     private static void signInProcess() {
         System.out.println("Please enter either the \"register\" or \"login\" command and then your username");
@@ -138,6 +154,10 @@ class Client {
             case "register":
                 isNewUser = true;
                 nickname = userInput.nextLine();
+                if (nickname.contains(":")) {
+                    System.out.println("Username cannot contain ':'");
+                    signInProcess();
+                }
                 break;
             case "login":
                 isNewUser = false;

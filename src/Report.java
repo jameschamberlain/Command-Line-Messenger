@@ -14,4 +14,5 @@ public class Report {
         Report.error(message);
         System.exit(1);
     }
+
 }

@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.SocketException;
@@ -8,8 +7,18 @@ import java.net.SocketException;
 
 public class ClientReceiver extends Thread {
 
+    /**
+     * Stores the communication stream to the Server
+     */
     private BufferedReader server;
 
+
+    /**
+     *
+     * Constructs a new client receiver
+     *
+     * @param server The communication stream to the server (ServerReceiver)
+     */
     ClientReceiver(BufferedReader server) {
         this.server = server;
     }

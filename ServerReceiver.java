@@ -88,7 +88,7 @@ public class ServerReceiver extends Thread {
 
                             if (recipientsMessages != null) {
                                 recipientsMessages.add(msg);
-                                userMessagesFile = new File("src/resources/user_messages/" + recipient + ".txt");
+                                userMessagesFile = new File("resources/user_messages/" + recipient + ".txt");
                                 userMessagesPath = userMessagesFile.getAbsolutePath();
                                 userMessagesTemp = new ArrayList<>();
                                 String s;

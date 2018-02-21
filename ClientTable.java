@@ -18,7 +18,7 @@ public class ClientTable {
      * @param nickname The nickname of the client
      * @param list The list of messages for the client
      */
-    public void add(String nickname, CopyOnWriteArrayList list) {
+    public void add(String nickname, CopyOnWriteArrayList<Message> list) {
         allUsersMessages.put(nickname, list);
     }
 

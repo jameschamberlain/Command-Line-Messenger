@@ -23,7 +23,7 @@ public class Server {
     /**
      * Stores the path to the file containing the list of users
      */
-    private static File usersFile = new File("src/resources/users.txt");
+    private static File usersFile = new File("resources/users.txt");
     /**
      * Stores the file path as a string
      */

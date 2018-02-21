@@ -96,7 +96,7 @@ public class ServerReceiver extends Thread {
                                     s = m.toString();
                                     userMessagesTemp.add(s);
                                 }
-                                Server.writeFile(userMessagesPath, userMessagesTemp);
+                                Server.writeFile(userMessagesFile, userMessagesPath, userMessagesTemp);
                             }
                             else {
                                 Report.error("Message for nonexistent client " + recipient + ": " + message);

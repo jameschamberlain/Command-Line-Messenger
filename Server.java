@@ -116,7 +116,7 @@ public class Server {
                             // We add the new client to the list of users and online users
                             users.add(clientName);
                             usersOnline.add(clientName);
-                            writeFile(usersPath, users);
+                            writeFile(usersFile, usersPath, users);
                             print("Current users online", usersOnline);
 
                             // We create and start a new thread to write to the client:
@@ -218,7 +218,7 @@ public class Server {
      * @param path The path for the new file
      * @param list The list which holds the content
      */
-    static void writeFile(String path, ArrayList<String> list) {
+    static void writeFile(File file, String path, ArrayList<String> list) {
         try {
             // Create a new BufferedWrite to write to the file
             BufferedWriter writer = new BufferedWriter(new FileWriter(new File(path), false));
@@ -228,6 +228,9 @@ public class Server {
                 writer.newLine();
             }
             writer.close();
+        }
+        catch (FileNotFoundException f) {
+            readFile(file, path, list);
         }
         catch (IOException e) {
             Report.error(e.getMessage());

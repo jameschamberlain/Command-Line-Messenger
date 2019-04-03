@@ -7,3 +7,4 @@ through the use of a username. Messages are also stored and can be viewed
 by the user.
 
 This project was given as an assignment in my first year at university.
+To read more about the sytem please read the Solution.md.
